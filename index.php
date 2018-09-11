@@ -11,19 +11,29 @@ try {
     $sql = "SELECT * FROM `books`";
     $isbn = !empty($_GET['isbn']) ? '%' . trim($_GET['isbn']) . '%' : null;
     $author = !empty($_GET['author']) ? '%' . trim($_GET['author']) . '%' : null;
-    $bookname = !empty($_GET['name']) ? '%' . trim($_GET['name']) . '%' : null;
+    $name = !empty($_GET['name']) ? '%' . trim($_GET['name']) . '%' : null;
 
-    if (!$isbn && !$author && !$bookname) {
+    if (!$isbn && !$author && !$name) {
         $result = $pdo->prepare($sql);
         $result->execute();
     } else {
         $sql = "SELECT * FROM `books` WHERE isbn LIKE ? OR author LIKE ? OR `name` LIKE ?";
         $result = $pdo->prepare($sql);
-        $result->execute([$isbn, $author, $bookname]);
+        $result->execute([$isbn, $author, $name]);
     }
 } catch (PDOException $e) {
     die($e->getMessage());
 }
+
+ function table($row){ ?>
+    <tr>
+        <td><?php echo htmlspecialchars($row['name']) ?></td>
+        <td><?php echo htmlspecialchars($row['author']) ?></td>
+        <td><?php echo htmlspecialchars($row['year']) ?></td>
+        <td><?php echo htmlspecialchars($row['genre']) ?></td>
+        <td><?php echo htmlspecialchars($row['isbn']) ?></td>
+    </tr>
+    <?php } 
 ?>
 
 <!doctype html>
@@ -41,7 +51,7 @@ try {
         <form method="GET">
             <input type="text" name="isbn" placeholder="ISBN" id="ISBN" value="<?php if (!empty($isbn)) echo trim($isbn, '%') ?>">
             <input type="text" name="author" placeholder="Автор книги" id="author" value="<?php if (!empty($author)) echo trim($author, '%') ?>">
-            <input type="text" name="bookname" placeholder="Название книги" id="bookname" value="<?php if (!empty($bookname)) echo trim($bookname, '%') ?>">
+            <input type="text" name="name" placeholder="Название книги" id="name" value="<?php if (!empty($name)) echo trim($name, '%') ?>">
             <input type="submit" value="Найти">
         </form>
     </div>
@@ -55,11 +65,11 @@ try {
             <?php if (!empty($author) && $result->rowCount() === 0) : ?>
                 <li>По фильтру author ничего не найдено</li>
             <?php endif; ?>
-            <?php if (!empty($bookname) && $result->rowCount() === 0) : ?>
+            <?php if (!empty($name) && $result->rowCount() === 0) : ?>
                 <li>По фильтру bookname ничего не найдено</li>
             <?php endif; ?>
         </ul>
-    <?php endif; ?>
+    <?php endif; ?>    
 
     <?php if ($result->rowCount() !== 0) : ?>
         <table>
@@ -69,16 +79,10 @@ try {
                 <td>Год</td>
                 <td>Жанр</td>
                 <td>ISBN</td>
-            </tr>
-            <?php foreach ($result as $row) : ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($row['name']) ?></td>
-                    <td><?php echo htmlspecialchars($row['author']) ?></td>
-                    <td><?php echo htmlspecialchars($row['year']) ?></td>
-                    <td><?php echo htmlspecialchars($row['genre']) ?></td>
-                    <td><?php echo htmlspecialchars($row['isbn']) ?></td>
-                </tr>
-            <?php endforeach; ?>
+                </tr>             
+            <?php foreach ($result as $row) : 
+                table($row);
+            endforeach ?>            
         </table>
     <?php endif; ?>
 </section>
